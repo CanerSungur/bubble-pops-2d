@@ -56,7 +56,7 @@ namespace BubblePops
         #region EVENT HANDLER FUNCTIONS
         private void SpawnEmptySlot(Bubble bubble, Enums.BubbleDirection direction)
         {
-            EmptySlot emptySlot = Instantiate(_emptySlotPrefab, _bubbleContainerTransform);
+            EmptySlot emptySlot = PoolManager.Instance.SpawnFromPool(Enums.PoolStamp.EmptySlot, Vector3.zero, Quaternion.identity, _bubbleContainerTransform).GetComponent<EmptySlot>();
             int columnOffset = direction is Enums.BubbleDirection.LeftTop or Enums.BubbleDirection.RightTop ? -1
                 : direction is Enums.BubbleDirection.Left or Enums.BubbleDirection.Right ? 0
                 : 1;
@@ -84,7 +84,7 @@ namespace BubblePops
             {
                 for (int j = 0; j < ROW_NUMBER; j++)
                 {
-                    Bubble bubble = Instantiate(_bubblePrefab, _bubbleContainerTransform);
+                    Bubble bubble = PoolManager.Instance.SpawnFromPool(Enums.PoolStamp.Bubble, Vector3.zero, Quaternion.identity, _bubbleContainerTransform).GetComponent<Bubble>();
                     BubbleManager.AddBubbleInSlot(bubble);
                     bubble.InitAsSlotBubble(this, _currentRowNumber, _currentColumnNumber);
                     if (i == 1 || i % 2 != 0)
@@ -101,7 +101,7 @@ namespace BubblePops
         {
             for (int i = 0; i < ROW_NUMBER; i++)
             {
-                EmptySlot emptySlot = Instantiate(_emptySlotPrefab, _bubbleContainerTransform);
+                EmptySlot emptySlot = PoolManager.Instance.SpawnFromPool(Enums.PoolStamp.EmptySlot, Vector3.zero, Quaternion.identity, _bubbleContainerTransform).GetComponent<EmptySlot>();
                 emptySlot.Init(this, i, COLUMN_NUMBER);
 
                 //if (COLUMN_NUMBER == 0 || COLUMN_NUMBER % 2 == 0)
@@ -115,14 +115,14 @@ namespace BubblePops
         #region THROWABLE BUBBLE FUNCTIONS
         private void SpawnFirstThrowableBubble()
         {
-            Bubble bubble = Instantiate(_bubblePrefab, _throwableContainerTransform);
+            Bubble bubble = PoolManager.Instance.SpawnFromPool(Enums.PoolStamp.Bubble, Vector3.zero, Quaternion.identity, _throwableContainerTransform).GetComponent<Bubble>();
             bubble.InitAsThrowableBubble(this, true);
             bubble.transform.localPosition = Vector2.zero;
             BubbleManager.SetFirstThrowable(bubble);
         }
         private void SpawnSecondThrowableBubble()
         {
-            Bubble bubble = Instantiate(_bubblePrefab, _throwableContainerTransform);
+            Bubble bubble = PoolManager.Instance.SpawnFromPool(Enums.PoolStamp.Bubble, Vector3.zero, Quaternion.identity, _throwableContainerTransform).GetComponent<Bubble>();
             bubble.InitAsThrowableBubble(this, false);
             bubble.transform.localPosition = new Vector2(THROWABLE_BUBBLE_OFFSET, 0);
             bubble.transform.localScale = Vector3.one * 0.75f;

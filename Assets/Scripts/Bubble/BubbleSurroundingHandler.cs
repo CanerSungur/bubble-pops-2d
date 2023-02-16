@@ -25,9 +25,10 @@ namespace BubblePops
         public void Init(Bubble bubble)
         {
             if (_bubble == null)
+            {
                 _bubble = bubble;
-
-            CreateRayDirections();
+                CreateRayDirections();
+            }
 
             _bubble.OnCheckSurroundings += CheckSurroundings;
             _bubble.OnEmptyDirectionIsFilled += RemoveEmptyDirection;
