@@ -57,6 +57,7 @@ namespace BubblePops
         private void SpawnEmptySlot(Bubble bubble, Enums.BubbleDirection direction)
         {
             EmptySlot emptySlot = PoolManager.Instance.SpawnFromPool(Enums.PoolStamp.EmptySlot, Vector3.zero, Quaternion.identity, _bubbleContainerTransform).GetComponent<EmptySlot>();
+            //BubbleManager.AddEmptySlot(emptySlot);
             int columnOffset = direction is Enums.BubbleDirection.LeftTop or Enums.BubbleDirection.RightTop ? -1
                 : direction is Enums.BubbleDirection.Left or Enums.BubbleDirection.Right ? 0
                 : 1;
@@ -73,7 +74,7 @@ namespace BubblePops
                 emptySlot.transform.localPosition = new Vector2((bubble.RowNumber + rowOffset) * BUBBLE_ROW_OFFSET, (bubble.ColumnNumber + columnOffset) * BUBBLE_COLUMN_OFFSET);
 
             emptySlot.Init(this, bubble.RowNumber + rowOffset, bubble.ColumnNumber + columnOffset);
-            bubble.OnEmptyDirectionIsFilled(direction);
+            //bubble.OnEmptyDirectionIsFilled?.Invoke(direction);
         }
         #endregion
 
@@ -85,7 +86,7 @@ namespace BubblePops
                 for (int j = 0; j < ROW_NUMBER; j++)
                 {
                     Bubble bubble = PoolManager.Instance.SpawnFromPool(Enums.PoolStamp.Bubble, Vector3.zero, Quaternion.identity, _bubbleContainerTransform).GetComponent<Bubble>();
-                    BubbleManager.AddBubbleInSlot(bubble);
+                    //BubbleManager.AddBubbleInSlot(bubble);
                     bubble.InitAsSlotBubble(this, _currentRowNumber, _currentColumnNumber);
                     if (i == 1 || i % 2 != 0)
                         bubble.transform.localPosition = new Vector2((_currentRowNumber * BUBBLE_ROW_OFFSET) + BUBBLE_DOUBLE_ROW_OFFSET, _currentColumnNumber * BUBBLE_COLUMN_OFFSET);
@@ -102,6 +103,7 @@ namespace BubblePops
             for (int i = 0; i < ROW_NUMBER; i++)
             {
                 EmptySlot emptySlot = PoolManager.Instance.SpawnFromPool(Enums.PoolStamp.EmptySlot, Vector3.zero, Quaternion.identity, _bubbleContainerTransform).GetComponent<EmptySlot>();
+                //BubbleManager.AddEmptySlot(emptySlot);
                 emptySlot.Init(this, i, COLUMN_NUMBER);
 
                 //if (COLUMN_NUMBER == 0 || COLUMN_NUMBER % 2 == 0)
@@ -125,7 +127,7 @@ namespace BubblePops
             Bubble bubble = PoolManager.Instance.SpawnFromPool(Enums.PoolStamp.Bubble, Vector3.zero, Quaternion.identity, _throwableContainerTransform).GetComponent<Bubble>();
             bubble.InitAsThrowableBubble(this, false);
             bubble.transform.localPosition = new Vector2(THROWABLE_BUBBLE_OFFSET, 0);
-            bubble.transform.localScale = Vector3.one * 0.75f;
+            //bubble.transform.localScale = Vector3.one * 0.75f;
             BubbleManager.SetSecondThrowable(bubble);
         }
         #endregion

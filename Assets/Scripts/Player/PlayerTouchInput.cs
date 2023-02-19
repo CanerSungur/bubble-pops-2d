@@ -44,7 +44,7 @@ namespace BubblePops
 
         private void Update()
         {
-            if (!_player.ThrowBehaviour.ThrowSequenceIsFinished) return;
+            if (GameManager.CurrentState != Enums.GameState.Ready) return;
 
             _line.enabled = ReadyToShoot;
 

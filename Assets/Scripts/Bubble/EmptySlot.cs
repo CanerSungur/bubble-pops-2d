@@ -1,6 +1,7 @@
 using UnityEngine;
 using DG.Tweening;
 using System;
+using System.Collections.Generic;
 
 namespace BubblePops
 {
@@ -14,6 +15,8 @@ namespace BubblePops
         #region FIELDS
         private int _rowNumber, _columnNumber;
         private bool _isEnabled;
+        private Vector2 _directionRight, _directionRightTop, _directionRightBottom, _directionLeft, _directionLeftTop, _directionLeftBottom;
+        private readonly Dictionary<Enums.BubbleDirection, Vector2> _directions = new();
         #endregion
 
         #region GETTERS
@@ -25,7 +28,7 @@ namespace BubblePops
         #region SEQUENCE
         private Sequence _enableSequence;
         private Guid _enableSequenceID;
-        private const float ENABLE_SEQUENCE_DURATION = 0.5f;
+        private const float ENABLE_SEQUENCE_DURATION = 0.25f;
         #endregion
 
         public void Init(SpawnManager spawnManager, int rowNumber, int columnNumber)
@@ -38,6 +41,14 @@ namespace BubblePops
             _isEnabled = false;
             _rowNumber = rowNumber;
             _columnNumber = columnNumber;
+
+            BubbleManager.AddEmptySlot(this);
+        }
+
+        private void OnDisable()
+        {
+            transform.localPosition = new Vector2(50, -50);
+            BubbleManager.RemoveEmptySlot(this);
         }
 
         #region PUBLICS

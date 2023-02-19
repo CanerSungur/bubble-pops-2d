@@ -28,7 +28,6 @@ namespace BubblePops
         public void GetThrown(EmptySlot emptySlot, Vector2? bouncePos = null)
         {
             StartMoveSequence(emptySlot, bouncePos);
-            emptySlot.gameObject.SetActive(false);
         }
         #endregion
 
@@ -52,6 +51,7 @@ namespace BubblePops
                     .OnComplete(() => {
                         transform.position = emptySlot.transform.position;
                         _bubble.OnThrowSuccessful?.Invoke();
+                        emptySlot.gameObject.SetActive(false);
                         DeleteMoveSequence();
                     });
                 }
@@ -62,6 +62,7 @@ namespace BubblePops
                         .OnComplete(() => {
                             transform.position = emptySlot.transform.position;
                             _bubble.OnThrowSuccessful?.Invoke();
+                            emptySlot.gameObject.SetActive(false);
                             DeleteMoveSequence();
                     });
                 }

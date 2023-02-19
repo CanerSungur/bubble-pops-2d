@@ -7,12 +7,16 @@ namespace BubblePops
         #region FIELDS
         private static Bubble _firstThrowableBubble, _secondThrowableBubble;
         private static List<Bubble> _bubblesInSlot = new();
+        private static List<EmptySlot> _emptySlots = new();
+        private static List<Bubble> _bubblesToMerge = new();
         #endregion
 
         #region GETTERS
         public static Bubble FirstThrowableBubble => _firstThrowableBubble;
         public static Bubble SecondThrowableBubble => _secondThrowableBubble;
         public static List<Bubble> BubblesInSlot => _bubblesInSlot;
+        public static List<EmptySlot> EmptySlots => _emptySlots;
+        public static List<Bubble> BubblesToMerge => _bubblesToMerge;
         #endregion
 
         #region SETTER FUNCTIONS
@@ -37,6 +41,40 @@ namespace BubblePops
             if (_bubblesInSlot.Contains(bubble))
                 _bubblesInSlot.Remove(bubble);
         }
+        public static void AddEmptySlot(EmptySlot emptySlot)
+        {
+            if (!_emptySlots.Contains(emptySlot))
+            {
+                #region Check if an empty slot already spawned at the same location
+                foreach (EmptySlot slot in _emptySlots)
+                {
+                    if (emptySlot.RowNumber == slot.RowNumber && emptySlot.ColumnNumber == slot.ColumnNumber)
+                    {
+                        emptySlot.gameObject.SetActive(false);
+                        return;
+                    }
+                }
+                #endregion
+
+                _emptySlots.Add(emptySlot);
+            }
+        }
+        public static void RemoveEmptySlot(EmptySlot emptySlot)
+        {
+            if (_emptySlots.Contains(emptySlot))
+                _emptySlots.Remove(emptySlot);
+        }
+        public static void AddBubblesToMerge(Bubble bubble)
+        {
+            if (!_bubblesToMerge.Contains(bubble))
+                _bubblesToMerge.Add(bubble);
+        }
+        public static void RemoveBubblesToMerge(Bubble bubble)
+        {
+            if (_bubblesToMerge.Contains(bubble))
+                _bubblesToMerge.Remove(bubble);
+        }
+        public static void ResetBubblesToMerge() => _bubblesToMerge.Clear();
         #endregion
     }
 }

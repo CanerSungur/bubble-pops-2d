@@ -7,7 +7,7 @@ namespace BubblePops
 
     public static class GameFlowEvents
     {
-
+        public static Action<Enums.GameState> OnGameStateChange;
     }
 
     public static class SpawnEvents
@@ -16,13 +16,14 @@ namespace BubblePops
         public static Action<Bubble, Enums.BubbleDirection> OnSpawnEmptySlot;
     }
 
-    public static class ThrowEvents
+    public static class BubbleEvents
     {
-
+        public static Action OnCheckSurroundings;
+        public static Action<Bubble> OnStartMerge;
     }
 
-    public static class PlayerEvents
+    public static class EmptySlotEvents
     {
-        public static Action OnThrowSuccessful;
+        public static Action OnCheckForActivation;
     }
 }
