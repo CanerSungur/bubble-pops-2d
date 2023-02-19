@@ -41,25 +41,18 @@ namespace BubblePops
         public void CheckSurroundings()
         {
             UpdateSurroundings();
-            //ShakeSurroundingBubbles();
             CheckEmptySlotSpawn();
         }
         public void CheckSurroundings(Bubble thrownBubble)
         {
             UpdateSurroundings();
+            CheckForBubblePop();
 
             foreach (Bubble bubble in _surroundingBubbles)
                 bubble.SurroundingHandler.UpdateSurroundings();
 
             if (_mergeableBubbles.Count > 0)
-            {
-                if (_bubble.MergeChainCount > 0)
-                    _bubble.OnMergeChainHappened?.Invoke();
-
-                BubbleManager.ResetBubblesToMerge();
-                CheckForMergeableBubbles(_mergeableBubbles);
-                BubbleEvents.OnStartMerge?.Invoke(_bubble);
-            }
+                CheckForMergeActivation();
             else
             {
                 if (_bubble.MergeChainCount == 0)
@@ -69,9 +62,17 @@ namespace BubblePops
                 GameFlowEvents.OnGameStateChange?.Invoke(Enums.GameState.PreparingNewBubble);
             }
         }
+        public void UpdateSurroundings()
+        {
+            _emptyDirections.Clear();
+            _surroundingBubbles.Clear();
+            _mergeableBubbles.Clear();
+            foreach (var direction in _directions)
+                ShootRay(direction.Key);
+        }
         #endregion
 
-        #region HELPERS
+        #region DIRECTION RELATED FUNCTIONS
         private Vector2 GetDirectionVector2D(float angle) => new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad)).normalized;
         private void CreateRayDirections()
         {
@@ -100,21 +101,17 @@ namespace BubblePops
                     AddMergeableBubble(bubble);
             }
         }
-        private void UpdateSurroundings()
-        {
-            _emptyDirections.Clear();
-            _surroundingBubbles.Clear();
-            _mergeableBubbles.Clear();
-            foreach (var direction in _directions)
-                ShootRay(direction.Key);
-        }
-        // this function checks 4 layer of bubbles but needs to be recursive to be more generic
+        #endregion
+
+        #region UPDATE & CHECK FUNCTIONS
+        // this function checks 5 layer of bubbles but needs to be recursive to be more generic
         private void CheckForMergeableBubbles(List<Bubble> mergeableBubbles)
         {
             if (mergeableBubbles == null || mergeableBubbles.Count == 0) return;
 
             for (int i = 0; i < mergeableBubbles.Count; i++)
             {
+                #region This part should be recursive
                 Bubble firstBubble = mergeableBubbles[i];
                 BubbleManager.AddBubblesToMerge(firstBubble);
                 for (int j = 0; j < firstBubble.SurroundingHandler.MergeableBubbles.Count; j++)
@@ -125,21 +122,63 @@ namespace BubblePops
                     {
                         Bubble thirdBubble = secondBubble.SurroundingHandler.MergeableBubbles[k];
                         BubbleManager.AddBubblesToMerge(thirdBubble);
+                        for (int l = 0; l < thirdBubble.SurroundingHandler.MergeableBubbles.Count; l++)
+                        {
+                            Bubble fourthBubble = thirdBubble.SurroundingHandler.MergeableBubbles[l];
+                            BubbleManager.AddBubblesToMerge(fourthBubble);
+                        }
                     }
                 }
-                //bubble.SurroundingHandler.CheckForMergeableBubbles(bubble.SurroundingHandler.MergeableBubbles);
+                #endregion
             }
 
-            //for (int i = 0; i < mergeableBubbles.Count; i++)
-            //{
-            //    Bubble bubble = mergeableBubbles[i];
-            //    BubbleManager.AddBubblesToMerge(bubble);
-            //    if (bubble.SurroundingHandler.MergeableBubbles.Count > 0)
-            //        CheckForMergeableBubbles(bubble.SurroundingHandler.MergeableBubbles);
-            //}
+            int newExponent = _bubble.Exponent + (BubbleManager.BubblesToMerge.Count - 1);// -1 because thrown bubble is inclusive
+            SetBubbleForNextMerge(newExponent);
 
+            // remove thrown bubble to calculate better
             BubbleManager.RemoveBubblesToMerge(_bubble);
-            //Debug.Log("Bubbles To Merge: " + BubbleManager.BubblesToMerge.Count);
+        }
+        private void SetBubbleForNextMerge(int newExponent)
+        {
+            Bubble bubbleForNextMerge = null;
+            int potentialMergeCount = 0;
+
+            for (int i = 0; i < BubbleManager.BubblesToMerge.Count; i++)
+            {
+                Bubble bubble = BubbleManager.BubblesToMerge[i];
+
+                int mergeCount = 0;
+                for (int j = 0; j < bubble.SurroundingHandler.SurroundingBubbles.Count; j++)
+                {
+                    Bubble potentialMerge = bubble.SurroundingHandler.SurroundingBubbles[j];
+                    if (potentialMerge.Exponent == newExponent) mergeCount++;
+                }
+                if (mergeCount > potentialMergeCount)
+                    bubbleForNextMerge = bubble;
+            }
+            BubbleManager.SetBubbleForNextMerge(bubbleForNextMerge);
+        }
+        private void CheckForBubblePop()
+        {
+            if (_bubble.IsPopped)
+            {
+                for (int i = 0; i < _surroundingBubbles.Count; i++)
+                    _surroundingBubbles[i].Pop();
+
+                _bubble.Pop();
+                BubbleEvents.OnCheckSurroundings?.Invoke();
+                //GameFlowEvents.OnGameStateChange?.Invoke(Enums.GameState.PreparingNewBubble);
+                return;
+            }
+        }
+        private void CheckForMergeActivation()
+        {
+            if (_bubble.MergeChainCount > 0)
+                _bubble.OnMergeChainHappened?.Invoke();
+
+            BubbleManager.ResetBubblesToMerge();
+            CheckForMergeableBubbles(_mergeableBubbles);
+            BubbleEvents.OnStartMerge?.Invoke(_bubble);
         }
         #endregion
 

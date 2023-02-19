@@ -27,7 +27,10 @@ namespace BubblePops
 
         private void StartMerge(Bubble mainBubble)
         {
-            mainBubble.MergeHandler.StartMergeSequence(GetTopMostBubble(BubbleManager.BubblesToMerge, mainBubble));
+            if (BubbleManager.BubbleForNextMerge == null)
+                mainBubble.MergeHandler.StartMergeSequence(GetTopMostBubble(BubbleManager.BubblesToMerge, mainBubble));
+            else
+                mainBubble.MergeHandler.StartMergeSequence(BubbleManager.BubbleForNextMerge);
 
             foreach (Bubble bubble in BubbleManager.BubblesToMerge)
             {

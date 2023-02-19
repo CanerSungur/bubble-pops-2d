@@ -5,7 +5,7 @@ namespace BubblePops
     public static class BubbleManager
     {
         #region FIELDS
-        private static Bubble _firstThrowableBubble, _secondThrowableBubble;
+        private static Bubble _firstThrowableBubble, _secondThrowableBubble, _bubbleForNextMerge;
         private static List<Bubble> _bubblesInSlot = new();
         private static List<EmptySlot> _emptySlots = new();
         private static List<Bubble> _bubblesToMerge = new();
@@ -14,20 +14,16 @@ namespace BubblePops
         #region GETTERS
         public static Bubble FirstThrowableBubble => _firstThrowableBubble;
         public static Bubble SecondThrowableBubble => _secondThrowableBubble;
+        public static Bubble BubbleForNextMerge => _bubbleForNextMerge;
         public static List<Bubble> BubblesInSlot => _bubblesInSlot;
         public static List<EmptySlot> EmptySlots => _emptySlots;
         public static List<Bubble> BubblesToMerge => _bubblesToMerge;
         #endregion
 
         #region SETTER FUNCTIONS
-        public static void SetFirstThrowable(Bubble bubble)
-        {
-            _firstThrowableBubble = bubble;
-        }
-        public static void SetSecondThrowable(Bubble bubble)
-        {
-            _secondThrowableBubble = bubble;
-        }
+        public static void SetFirstThrowable(Bubble bubble) => _firstThrowableBubble = bubble;
+        public static void SetSecondThrowable(Bubble bubble) => _secondThrowableBubble = bubble;
+        public static void SetBubbleForNextMerge(Bubble bubble) => _bubbleForNextMerge = bubble; 
         #endregion
 
         #region LIST FUNCTIONS

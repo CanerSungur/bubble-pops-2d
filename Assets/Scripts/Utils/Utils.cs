@@ -16,7 +16,8 @@ namespace BubblePops.Utility
         /// <param name="action">Function you want to delay.</param>
         public static void DoActionAfterDelay(this MonoBehaviour mono, float delayTime, Action action)
         {
-            mono.StartCoroutine(ExecuteAction(delayTime, action));
+            if (mono != null || mono.enabled)
+                mono.StartCoroutine(ExecuteAction(delayTime, action));
         }
 
         private static IEnumerator ExecuteAction(float delayTime, Action action)
