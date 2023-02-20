@@ -6,6 +6,7 @@ namespace BubblePops
     public class BubbleSurroundingHandler : MonoBehaviour
     {
         [SerializeField] private LayerMask _hitLayers;
+        [SerializeField] private LayerMask _bubbleLayer;
 
         #region COMPONENTS
         private Bubble _bubble;
@@ -14,6 +15,8 @@ namespace BubblePops
         #region FIELDS
         private List<Bubble> _surroundingBubbles = new();
         private List<Bubble> _mergeableBubbles = new();
+        private Dictionary<Enums.BubbleDirection, Bubble> _affiliatedBubbles = new();
+        private Dictionary<Enums.BubbleDirection, Bubble> _dependantBubbles = new();
         private readonly Dictionary<Enums.BubbleDirection, Vector2> _directions = new();
         private List<Enums.BubbleDirection> _emptyDirections = new();
         private Vector2 _directionRight, _directionRightTop, _directionRightBottom, _directionLeft, _directionLeftTop, _directionLeftBottom;
@@ -22,10 +25,13 @@ namespace BubblePops
         #region GETTERS
         public List<Bubble> SurroundingBubbles => _surroundingBubbles;
         public List<Bubble> MergeableBubbles => _mergeableBubbles;
+        public Dictionary<Enums.BubbleDirection, Bubble> DependantBubbles => _dependantBubbles;
+        public List<Enums.BubbleDirection> EmptyDirections => _emptyDirections;
+        public Dictionary<Enums.BubbleDirection, Vector2> Directions => _directions;
         #endregion
 
         #region CONSTANTS
-        private const float RAY_LENGTH = 0.6f;
+        private const float RAY_LENGTH = 0.75f;
         #endregion
 
         public void Init(Bubble bubble)
@@ -35,18 +41,31 @@ namespace BubblePops
                 _bubble = bubble;
                 CreateRayDirections();
             }
+
+            BubbleEvents.OnPositionChanged += HandlePositionChange;
+        }
+
+        private void OnDisable() 
+        {
+            ClearAllLists();    
+
+            if (_bubble == null) return;
+            BubbleEvents.OnPositionChanged -= HandlePositionChange;
         }
 
         #region PUBLICS
+        
         public void CheckSurroundings()
         {
             UpdateSurroundings();
             CheckEmptySlotSpawn();
+            CheckForBubbleDrop();
         }
-        public void CheckSurroundings(Bubble thrownBubble)
+        public void TryMerging(Bubble thrownBubble)
         {
-            UpdateSurroundings();
             CheckForBubblePop();
+            if (_bubble.MergeChainCount == 0)
+                ShakeSurroundingBubbles();
 
             foreach (Bubble bubble in _surroundingBubbles)
                 bubble.SurroundingHandler.UpdateSurroundings();
@@ -55,9 +74,6 @@ namespace BubblePops
                 CheckForMergeActivation();
             else
             {
-                if (_bubble.MergeChainCount == 0)
-                    ShakeSurroundingBubbles();
-
                 CheckEmptySlotSpawn();
                 GameFlowEvents.OnGameStateChange?.Invoke(Enums.GameState.PreparingNewBubble);
             }
@@ -93,19 +109,38 @@ namespace BubblePops
         {
             RaycastHit2D hit = Physics2D.Raycast(transform.position, _directions[directionKey], RAY_LENGTH, _hitLayers);
             if (hit.collider == null)
+            {
                 AddEmptyDirection(directionKey);
+
+                if (directionKey is Enums.BubbleDirection.LeftTop or Enums.BubbleDirection.RightTop)
+                    RemoveBubbleFromDictionary(_affiliatedBubbles, directionKey);
+                if (directionKey is Enums.BubbleDirection.LeftBottom or Enums.BubbleDirection.RightBottom)
+                    RemoveBubbleFromDictionary(_dependantBubbles, directionKey);
+            }
             else if (hit.transform.TryGetComponent(out Bubble bubble))
             {
-                AddBubble(bubble);
+                AddBubbleToList(_surroundingBubbles, bubble);
                 if (_bubble.Exponent == bubble.Exponent)
-                    AddMergeableBubble(bubble);
+                    AddBubbleToList(_mergeableBubbles, bubble);
+
+                if (directionKey is Enums.BubbleDirection.LeftTop or Enums.BubbleDirection.RightTop)
+                    AddBubbleToDictionary(_affiliatedBubbles, directionKey, bubble);
+                if (directionKey is Enums.BubbleDirection.LeftBottom or Enums.BubbleDirection.RightBottom)
+                    AddBubbleToDictionary(_dependantBubbles, directionKey, bubble);
+            }
+            else
+            {
+                if (directionKey is Enums.BubbleDirection.LeftTop or Enums.BubbleDirection.RightTop)
+                    RemoveBubbleFromDictionary(_affiliatedBubbles, directionKey);
+                if (directionKey is Enums.BubbleDirection.LeftBottom or Enums.BubbleDirection.RightBottom)
+                    RemoveBubbleFromDictionary(_dependantBubbles, directionKey);
             }
         }
         #endregion
 
         #region UPDATE & CHECK FUNCTIONS
         // this function checks 5 layer of bubbles but needs to be recursive to be more generic
-        private void CheckForMergeableBubbles(List<Bubble> mergeableBubbles)
+        private void CheckForPossibleMergeableBubbles(List<Bubble> mergeableBubbles)
         {
             if (mergeableBubbles == null || mergeableBubbles.Count == 0) return;
 
@@ -133,12 +168,12 @@ namespace BubblePops
             }
 
             int newExponent = _bubble.Exponent + (BubbleManager.BubblesToMerge.Count - 1);// -1 because thrown bubble is inclusive
-            SetBubbleForNextMerge(newExponent);
+            SetBubbleForNextPossibleMerge(newExponent);
 
             // remove thrown bubble to calculate better
             BubbleManager.RemoveBubblesToMerge(_bubble);
         }
-        private void SetBubbleForNextMerge(int newExponent)
+        private void SetBubbleForNextPossibleMerge(int newExponent)
         {
             Bubble bubbleForNextMerge = null;
             int potentialMergeCount = 0;
@@ -167,9 +202,13 @@ namespace BubblePops
 
                 _bubble.Pop();
                 BubbleEvents.OnCheckSurroundings?.Invoke();
-                //GameFlowEvents.OnGameStateChange?.Invoke(Enums.GameState.PreparingNewBubble);
                 return;
             }
+        }
+        private void CheckForBubbleDrop()
+        {
+            if (_affiliatedBubbles.Count == 0 && !IsAttachedToABubble())
+                _bubble.Drop();
         }
         private void CheckForMergeActivation()
         {
@@ -177,8 +216,18 @@ namespace BubblePops
                 _bubble.OnMergeChainHappened?.Invoke();
 
             BubbleManager.ResetBubblesToMerge();
-            CheckForMergeableBubbles(_mergeableBubbles);
+            CheckForPossibleMergeableBubbles(_mergeableBubbles);
             BubbleEvents.OnStartMerge?.Invoke(_bubble);
+        }
+        private bool IsAttachedToABubble()
+        {
+            foreach (Bubble bubble in _surroundingBubbles)
+            {
+                if (!bubble.IsDropped && !_affiliatedBubbles.ContainsValue(bubble) && !_dependantBubbles.ContainsValue(bubble))
+                return true;
+            }
+
+            return false;
         }
         #endregion
 
@@ -188,7 +237,7 @@ namespace BubblePops
             if (_surroundingBubbles.Count > 0)
             {
                 foreach (Bubble bubble in _surroundingBubbles)
-                    bubble.OnShakeTransform?.Invoke();
+                    bubble.OnShakeTransform?.Invoke(_bubble);
             }
         }
         private void CheckEmptySlotSpawn()
@@ -205,19 +254,34 @@ namespace BubblePops
                 }
             }
         }
+        private void HandlePositionChange(Bubble bubble)
+        {
+            RemoveBubbleFromList(_surroundingBubbles, bubble);
+            RemoveBubbleFromList(_mergeableBubbles, bubble);
+        }
         #endregion
 
         #region LISTING FUNCTIONS
-        private void AddBubble(Bubble bubble)
+        private void AddBubbleToList(List<Bubble> list, Bubble bubble)
         {
-            if (!_surroundingBubbles.Contains(bubble))
-                _surroundingBubbles.Add(bubble);
+            if (!list.Contains(bubble))
+                list.Add(bubble);
         }
-        private void RemoveBubble(Bubble bubble)
+        private void RemoveBubbleFromList(List<Bubble> list, Bubble bubble)
         {
-            if (_surroundingBubbles.Contains(bubble))
-                _surroundingBubbles.Remove(bubble);
+            if (list.Contains(bubble))
+                list.Remove(bubble);
         }
+        // private void AddSurroundingBubble(Bubble bubble)
+        // {
+        //     if (!_surroundingBubbles.Contains(bubble))
+        //         _surroundingBubbles.Add(bubble);
+        // }
+        // private void RemoveSurroundingBubble(Bubble bubble)
+        // {
+        //     if (_surroundingBubbles.Contains(bubble))
+        //         _surroundingBubbles.Remove(bubble);
+        // }
         private void AddEmptyDirection(Enums.BubbleDirection direction)
         {
             if (_bubble.ColumnNumber == 0 && direction is Enums.BubbleDirection.Left or Enums.BubbleDirection.Right or Enums.BubbleDirection.LeftTop or Enums.BubbleDirection.RightTop) return;
@@ -240,15 +304,59 @@ namespace BubblePops
             if (_emptyDirections.Contains(direction))
                 _emptyDirections.Remove(direction);
         }
-        public void AddMergeableBubble(Bubble bubble)
+        // public void AddMergeableBubble(Bubble bubble)
+        // {
+        //     if (!_mergeableBubbles.Contains(bubble))
+        //         _mergeableBubbles.Add(bubble);
+        // }
+        // public void RemoveMergeableBubble(Bubble bubble)
+        // {
+        //     if (_mergeableBubbles.Contains(bubble))
+        //         _mergeableBubbles.Remove(bubble);
+        // }
+        private void AddBubbleToDictionary(Dictionary<Enums.BubbleDirection, Bubble> dict, Enums.BubbleDirection direction, Bubble bubble)
         {
-            if (!_mergeableBubbles.Contains(bubble))
-                _mergeableBubbles.Add(bubble);
+            if (dict.ContainsKey(direction))
+                dict[direction] = bubble;
+            else
+                dict.Add(direction, bubble);
         }
-        public void RemoveMergeableBubble(Bubble bubble)
+        private void RemoveBubbleFromDictionary(Dictionary<Enums.BubbleDirection, Bubble> dict, Enums.BubbleDirection direction)
         {
-            if (_mergeableBubbles.Contains(bubble))
-                _mergeableBubbles.Remove(bubble);
+            if (dict.ContainsKey(direction))
+                dict.Remove(direction);
+        }
+        // private void AddAffiliatedBubble(Enums.BubbleDirection direction, Bubble bubble)
+        // {
+        //     if (_affiliatedBubbles.ContainsKey(direction))
+        //         _affiliatedBubbles[direction] = bubble;
+        //     else
+        //         _affiliatedBubbles.Add(direction, bubble);
+        // }
+        // private void RemoveAffiliatedBubble(Enums.BubbleDirection direction)
+        // {
+        //     if (_affiliatedBubbles.ContainsKey(direction))
+        //         _affiliatedBubbles.Remove(direction);
+        // }
+        // private void AddDependantBubble(Enums.BubbleDirection direction, Bubble bubble)
+        // {
+        //     if (_dependantBubbles.ContainsKey(direction))
+        //         _dependantBubbles[direction] = bubble;
+        //     else
+        //         _dependantBubbles.Add(direction, bubble);
+        // }
+        // private void RemoveDependantBubble(Enums.BubbleDirection direction)
+        // {
+        //     if (_dependantBubbles.ContainsKey(direction))
+        //         _dependantBubbles.Remove(direction);
+        // }
+        private void ClearAllLists()
+        {
+            _emptyDirections.Clear();
+            _surroundingBubbles.Clear();
+            _mergeableBubbles.Clear();
+            _affiliatedBubbles.Clear();
+            _dependantBubbles.Clear();
         }
         #endregion
     }

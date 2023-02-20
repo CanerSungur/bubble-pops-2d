@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Collections.Generic;
 
 namespace BubblePops
@@ -23,7 +24,15 @@ namespace BubblePops
         #region SETTER FUNCTIONS
         public static void SetFirstThrowable(Bubble bubble) => _firstThrowableBubble = bubble;
         public static void SetSecondThrowable(Bubble bubble) => _secondThrowableBubble = bubble;
-        public static void SetBubbleForNextMerge(Bubble bubble) => _bubbleForNextMerge = bubble; 
+        public static void SetBubbleForNextMerge(Bubble bubble) => _bubbleForNextMerge = bubble;
+        #endregion
+
+        #region PUBLICS
+        public static void RemoveThisFromAllLists(Bubble bubble)
+        {
+            RemoveBubbleInSlot(bubble);
+            RemoveBubblesToMerge(bubble);
+        }
         #endregion
 
         #region LIST FUNCTIONS

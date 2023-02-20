@@ -1,4 +1,3 @@
-using UnityEngine;
 using System;
 
 namespace BubblePops
@@ -19,7 +18,7 @@ namespace BubblePops
     public static class BubbleEvents
     {
         public static Action OnCheckSurroundings;
-        public static Action<Bubble> OnStartMerge;
+        public static Action<Bubble> OnStartMerge, OnPositionChanged;
     }
 
     public static class EmptySlotEvents

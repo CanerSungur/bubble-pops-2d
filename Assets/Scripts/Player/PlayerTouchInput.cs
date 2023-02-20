@@ -17,6 +17,7 @@ namespace BubblePops
         private Camera _camera;
         private RaycastHit2D _firstRayHit, _secondRayHit, _emptySlotRayHit;
         private Vector3 _touchPosition;
+        private float _delayedTime;
         #endregion
 
         #region PROPERTIES
@@ -31,8 +32,11 @@ namespace BubblePops
         #region CONSTANTS
         private const string WALL_LAYER = "Wall";
         private const string BUBBLE_LAYER = "Bubble";
+
         private const float SECOND_RAY_START_OFFSET = 0.01f;
         private const float DISABLE_INPUT_HEIGHT_THRESHOLD_PERC = 0.2f;
+
+        private const float TAKE_INPUT_DELAY = 0.4f;
         #endregion
 
         public void Init(Player player)
@@ -40,11 +44,22 @@ namespace BubblePops
             _player = player;
             _camera = Camera.main;
             ReadyToShoot = false;
+
+            GameFlowEvents.OnGameStateChange += ((Enums.GameState gameState) => {
+                if (gameState == Enums.GameState.Ready) _delayedTime = Time.time + TAKE_INPUT_DELAY;
+            });
+        }
+
+        private void OnDisable()
+        {
+            GameFlowEvents.OnGameStateChange -= ((Enums.GameState gameState) => {
+                if (gameState == Enums.GameState.Ready) _delayedTime = Time.time + TAKE_INPUT_DELAY;
+            });
         }
 
         private void Update()
         {
-            if (GameManager.CurrentState != Enums.GameState.Ready) return;
+            if (GameManager.CurrentState != Enums.GameState.Ready || _delayedTime > Time.time) return;
 
             _line.enabled = ReadyToShoot;
 

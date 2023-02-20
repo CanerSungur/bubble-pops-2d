@@ -20,8 +20,8 @@ namespace BubblePops
         #region CONSTANTS
         private const float MERGE_SEQUENCE_DURATION = 0.4f;
         private const float MOVE_FOR_OTHER_BUBBLES_SEQ_DURATION = 0.4f;
-        private const float DURATION_DECREASE_AMOUNT = 0.2f;
-        private const float MIN_DURATION = 0.05f;
+        private const float DURATION_DECREASE_AMOUNT = 0.035f;
+        private const float MIN_DURATION = 0.1f;
         #endregion
 
         public void Init(Bubble bubble)
@@ -65,8 +65,9 @@ namespace BubblePops
                         DeleteMergeSequence();
 
                         Utils.DoActionAfterDelay(_bubble, 0.1f, () => {
+                            BubbleEvents.OnPositionChanged?.Invoke(_bubble);
                             BubbleEvents.OnCheckSurroundings?.Invoke();
-                            _bubble.SurroundingHandler.CheckSurroundings(_bubble);
+                            _bubble.SurroundingHandler.TryMerging(_bubble);
                             //GameFlowEvents.OnGameStateChange?.Invoke(Enums.GameState.PreparingNewBubble);
                             });
                     });
@@ -91,6 +92,7 @@ namespace BubblePops
 
                 _moveForOtherBubblesSequence.Append(transform.DOLocalMove(Vector2.zero, duration))
                     .OnComplete(() => {
+                        BubbleEvents.OnPositionChanged?.Invoke(_bubble);
                         DeleteMoveFotOtherBubblesSequence();
                         gameObject.SetActive(false);
                     });
