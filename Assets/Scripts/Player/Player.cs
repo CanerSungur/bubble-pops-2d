@@ -7,6 +7,7 @@ namespace BubblePops
         #region COMPONENTS
         private PlayerTouchInput _touchInput;
         private PlayerThrowBehaviour _throwBehaviour;
+        private PlayerAudioHandler _audioHandler;
         #endregion
 
         #region GETTERS
@@ -18,12 +19,14 @@ namespace BubblePops
         {
             _touchInput = GetComponent<PlayerTouchInput>();
             _throwBehaviour = GetComponent<PlayerThrowBehaviour>();
+            _audioHandler = GetComponent<PlayerAudioHandler>();
         }
 
         private void Start()
         {
             _touchInput.Init(this);
             _throwBehaviour.Init(this);
+            _audioHandler.Init(this);
         }
     }
 }

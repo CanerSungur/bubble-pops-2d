@@ -13,6 +13,7 @@ namespace BubblePops
         #endregion
 
         #region FIELDS
+        private Enums.ColumnLeanSide _columnLeanSide;
         private int _rowNumber, _columnNumber;
         private bool _isEnabled;
         private Vector2 _directionRight, _directionRightTop, _directionRightBottom, _directionLeft, _directionLeftTop, _directionLeftBottom;
@@ -20,6 +21,7 @@ namespace BubblePops
         #endregion
 
         #region GETTERS
+        public Enums.ColumnLeanSide ColumnLeanSide => _columnLeanSide;
         public int RowNumber => _rowNumber;
         public int ColumnNumber => _columnNumber;
         public bool IsEnabled => _isEnabled;
@@ -31,14 +33,15 @@ namespace BubblePops
         private const float ENABLE_SEQUENCE_DURATION = 0.25f;
         #endregion
 
-        public void Init(SpawnManager spawnManager, int rowNumber, int columnNumber)
+        public void Init(SpawnManager spawnManager, int rowNumber, int columnNumber, Enums.ColumnLeanSide columnLeanSide)
         {
             if (_spriteRenderer == null)
                 _spriteRenderer = transform.GetChild(0).GetComponent<SpriteRenderer>();
 
-            SetColor(0, Color.white);
+            SetColor(1, Color.white);
 
             _isEnabled = false;
+            _columnLeanSide = columnLeanSide;
             _rowNumber = rowNumber;
             _columnNumber = columnNumber;
 
@@ -64,7 +67,7 @@ namespace BubblePops
         {
             if (!_isEnabled) return;
             _isEnabled = false;
-            SetColor(0f);
+            SetColor(1);
         }
         #endregion
 

@@ -26,5 +26,24 @@ namespace BubblePops.Utility
             action.Invoke();
             yield break;
         }
+
+        /// <summary>
+        /// This function converts given int value to K and M type.
+        /// i.e. 10.000 to 10K, 1.500.000 to 1.5M
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string IntToStringShortener(int value)
+        {
+            float val = (float)value;
+            if (val < 1000)
+                return val.ToString();
+            else if (val >= 1000 && val < 1000000)
+                return (val / 1000).ToString("#.##") + "K";
+            else if (val >= 1000000 && val < 1000000000)
+                return (val / 1000000).ToString("#.##") + "M";
+            else
+                return (val / 1000000000).ToString("#.##") + "B";
+        }
     }
 }

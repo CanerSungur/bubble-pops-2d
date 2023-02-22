@@ -7,7 +7,7 @@ namespace BubblePops
     public class BubbleThrowHandler : MonoBehaviour
     {
         [Header("-- SETUP --")]
-        [SerializeField] private float _throwDuration = 0.2f;
+        [SerializeField] private float _throwDuration = 0.4f;
 
         #region FIELDS
         private Bubble _bubble;
@@ -47,7 +47,7 @@ namespace BubblePops
 
                 if (bounceTarget == null)
                 {
-                    _moveSequence.Append(transform.DOMove(emptySlot.transform.position, _throwDuration))
+                    _moveSequence.Append(transform.DOMove(emptySlot.transform.position, _throwDuration * 0.5f))
                     .OnComplete(() => {
                         transform.position = emptySlot.transform.position;
                         _bubble.OnThrowSuccessful?.Invoke();

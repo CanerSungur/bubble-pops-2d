@@ -75,7 +75,8 @@ namespace BubblePops
             else
             {
                 CheckEmptySlotSpawn();
-                GameFlowEvents.OnGameStateChange?.Invoke(Enums.GameState.PreparingNewBubble);
+                GameEvents.OnGameStateChange?.Invoke(Enums.GameState.PreparingNewBubble);
+                // GameEvents.OnCheckMapMovement?.Invoke();
             }
         }
         public void UpdateSurroundings()
@@ -198,9 +199,10 @@ namespace BubblePops
             if (_bubble.IsPopped)
             {
                 for (int i = 0; i < _surroundingBubbles.Count; i++)
-                    _surroundingBubbles[i].Pop();
+                    _surroundingBubbles[i].Pop(false);
 
-                _bubble.Pop();
+                _bubble.Pop(true);
+                _bubble.EffectHandler.SpawnBubblePopPS();
                 BubbleEvents.OnCheckSurroundings?.Invoke();
                 return;
             }
@@ -249,7 +251,10 @@ namespace BubblePops
                 {
                     Enums.BubbleDirection emptyDirection = _emptyDirections[0];
 
-                    SpawnEvents.OnSpawnEmptySlot?.Invoke(_bubble, emptyDirection);
+                    Enums.ColumnLeanSide columnLeanSide = emptyDirection is Enums.BubbleDirection.Left or Enums.BubbleDirection.Right ? _bubble.ColumnLeanSide 
+                    : _bubble.ColumnLeanSide == Enums.ColumnLeanSide.Left ? Enums.ColumnLeanSide.Right : Enums.ColumnLeanSide.Left;
+
+                    SpawnEvents.OnSpawnEmptySlot?.Invoke(_bubble, emptyDirection, columnLeanSide);
                     RemoveEmptyDirection(emptyDirection);
                 }
             }
@@ -272,16 +277,6 @@ namespace BubblePops
             if (list.Contains(bubble))
                 list.Remove(bubble);
         }
-        // private void AddSurroundingBubble(Bubble bubble)
-        // {
-        //     if (!_surroundingBubbles.Contains(bubble))
-        //         _surroundingBubbles.Add(bubble);
-        // }
-        // private void RemoveSurroundingBubble(Bubble bubble)
-        // {
-        //     if (_surroundingBubbles.Contains(bubble))
-        //         _surroundingBubbles.Remove(bubble);
-        // }
         private void AddEmptyDirection(Enums.BubbleDirection direction)
         {
             if (_bubble.ColumnNumber == 0 && direction is Enums.BubbleDirection.Left or Enums.BubbleDirection.Right or Enums.BubbleDirection.LeftTop or Enums.BubbleDirection.RightTop) return;
@@ -304,16 +299,6 @@ namespace BubblePops
             if (_emptyDirections.Contains(direction))
                 _emptyDirections.Remove(direction);
         }
-        // public void AddMergeableBubble(Bubble bubble)
-        // {
-        //     if (!_mergeableBubbles.Contains(bubble))
-        //         _mergeableBubbles.Add(bubble);
-        // }
-        // public void RemoveMergeableBubble(Bubble bubble)
-        // {
-        //     if (_mergeableBubbles.Contains(bubble))
-        //         _mergeableBubbles.Remove(bubble);
-        // }
         private void AddBubbleToDictionary(Dictionary<Enums.BubbleDirection, Bubble> dict, Enums.BubbleDirection direction, Bubble bubble)
         {
             if (dict.ContainsKey(direction))
@@ -326,30 +311,6 @@ namespace BubblePops
             if (dict.ContainsKey(direction))
                 dict.Remove(direction);
         }
-        // private void AddAffiliatedBubble(Enums.BubbleDirection direction, Bubble bubble)
-        // {
-        //     if (_affiliatedBubbles.ContainsKey(direction))
-        //         _affiliatedBubbles[direction] = bubble;
-        //     else
-        //         _affiliatedBubbles.Add(direction, bubble);
-        // }
-        // private void RemoveAffiliatedBubble(Enums.BubbleDirection direction)
-        // {
-        //     if (_affiliatedBubbles.ContainsKey(direction))
-        //         _affiliatedBubbles.Remove(direction);
-        // }
-        // private void AddDependantBubble(Enums.BubbleDirection direction, Bubble bubble)
-        // {
-        //     if (_dependantBubbles.ContainsKey(direction))
-        //         _dependantBubbles[direction] = bubble;
-        //     else
-        //         _dependantBubbles.Add(direction, bubble);
-        // }
-        // private void RemoveDependantBubble(Enums.BubbleDirection direction)
-        // {
-        //     if (_dependantBubbles.ContainsKey(direction))
-        //         _dependantBubbles.Remove(direction);
-        // }
         private void ClearAllLists()
         {
             _emptyDirections.Clear();

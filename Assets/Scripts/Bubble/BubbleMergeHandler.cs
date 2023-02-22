@@ -1,7 +1,6 @@
 using DG.Tweening;
 using UnityEngine;
 using System;
-using System.Collections.Generic;
 using BubblePops.Utility;
 
 namespace BubblePops
@@ -18,8 +17,8 @@ namespace BubblePops
         #endregion
 
         #region CONSTANTS
-        private const float MERGE_SEQUENCE_DURATION = 0.4f;
-        private const float MOVE_FOR_OTHER_BUBBLES_SEQ_DURATION = 0.4f;
+        private const float MERGE_SEQUENCE_DURATION = 0.3f;
+        private const float MOVE_FOR_OTHER_BUBBLES_SEQ_DURATION = 0.3f;
         private const float DURATION_DECREASE_AMOUNT = 0.035f;
         private const float MIN_DURATION = 0.1f;
         #endregion
@@ -39,13 +38,15 @@ namespace BubblePops
         }
         public void StartMoveForOtherBubblesSequence(Bubble ownerBubble)
         {
+            _bubble.EffectHandler.TriggerTextFadeSequence();
+            _bubble.EffectHandler.SpawnBubbleMergePS(_bubble.Color);
+
             CreateMoveForOtherBubblesSequence(ownerBubble);
             _moveForOtherBubblesSequence.Play();
         }
         #endregion
 
         #region DOTWEEN FUNCTIONS
-        
         private void CreateMergeSequence(Bubble topMostBubble)
         {
             if (_mergeSequence == null)
@@ -68,7 +69,6 @@ namespace BubblePops
                             BubbleEvents.OnPositionChanged?.Invoke(_bubble);
                             BubbleEvents.OnCheckSurroundings?.Invoke();
                             _bubble.SurroundingHandler.TryMerging(_bubble);
-                            //GameFlowEvents.OnGameStateChange?.Invoke(Enums.GameState.PreparingNewBubble);
                             });
                     });
             }
@@ -93,12 +93,12 @@ namespace BubblePops
                 _moveForOtherBubblesSequence.Append(transform.DOLocalMove(Vector2.zero, duration))
                     .OnComplete(() => {
                         BubbleEvents.OnPositionChanged?.Invoke(_bubble);
-                        DeleteMoveFotOtherBubblesSequence();
+                        DeleteMoveForOtherBubblesSequence();
                         gameObject.SetActive(false);
                     });
             }
         }
-        private void DeleteMoveFotOtherBubblesSequence()
+        private void DeleteMoveForOtherBubblesSequence()
         {
             DOTween.Kill(_moveForOtherBubblesSequenceID);
             _moveForOtherBubblesSequence = null;

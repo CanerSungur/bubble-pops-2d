@@ -31,7 +31,7 @@ namespace BubblePops
             else
                 BubbleManager.FirstThrowableBubble.ThrowHandler.GetThrown(_currentEmptySlot, bouncePosition);
 
-            GameFlowEvents.OnGameStateChange?.Invoke(Enums.GameState.MergingBubbles);
+            GameEvents.OnGameStateChange?.Invoke(Enums.GameState.MergingBubbles);
         }
         #endregion
 

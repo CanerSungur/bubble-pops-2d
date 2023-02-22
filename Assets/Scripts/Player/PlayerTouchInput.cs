@@ -18,6 +18,7 @@ namespace BubblePops
         private RaycastHit2D _firstRayHit, _secondRayHit, _emptySlotRayHit;
         private Vector3 _touchPosition;
         private float _delayedTime;
+        private bool _mouseIsInPosition;
         #endregion
 
         #region PROPERTIES
@@ -27,6 +28,7 @@ namespace BubblePops
         #region GETTERS
         public RaycastHit2D FirstRayHit => _firstRayHit;
         public RaycastHit2D SecondRayHit => _secondRayHit;
+        public bool CantTakeInput => LevelUpCanvas.IsOpen || SettingsCanvas.IsOpen || GameManager.CurrentState != Enums.GameState.Ready || Time.time < _delayedTime; 
         #endregion
 
         #region CONSTANTS
@@ -34,40 +36,42 @@ namespace BubblePops
         private const string BUBBLE_LAYER = "Bubble";
 
         private const float SECOND_RAY_START_OFFSET = 0.01f;
-        private const float DISABLE_INPUT_HEIGHT_THRESHOLD_PERC = 0.2f;
+        private const float DISABLE_INPUT_MIN_HEIGHT_THRESHOLD_PERC = 0.18f;
+        private const float DISABLE_INPUT_MAX_HEIGHT_THRESHOLD_PERC = 0.9f;
 
-        private const float TAKE_INPUT_DELAY = 0.4f;
+        private const float TAKE_INPUT_DELAY = 0.2f;
         #endregion
 
         public void Init(Player player)
         {
             _player = player;
+            _delayedTime = 0;
             _camera = Camera.main;
             ReadyToShoot = false;
-
-            GameFlowEvents.OnGameStateChange += ((Enums.GameState gameState) => {
+            
+            GameEvents.OnGameStateChange += ((Enums.GameState gameState) => {
                 if (gameState == Enums.GameState.Ready) _delayedTime = Time.time + TAKE_INPUT_DELAY;
             });
         }
 
         private void OnDisable()
         {
-            GameFlowEvents.OnGameStateChange -= ((Enums.GameState gameState) => {
+            GameEvents.OnGameStateChange -= ((Enums.GameState gameState) => {
                 if (gameState == Enums.GameState.Ready) _delayedTime = Time.time + TAKE_INPUT_DELAY;
             });
         }
 
         private void Update()
         {
-            if (GameManager.CurrentState != Enums.GameState.Ready || _delayedTime > Time.time) return;
+            if (CantTakeInput) return;
+
+            CheckForCalcelInputThreshold();
 
             _line.enabled = ReadyToShoot;
 
-            if (Input.GetMouseButton(0))
+            if (Input.GetMouseButton(0) && _mouseIsInPosition)
             {
                 _touchPosition = _camera.ScreenToWorldPoint(Input.mousePosition);
-
-                CheckForCalcelInputThreshold();
 
                 ShootFirstRay(_touchPosition);
 
@@ -113,9 +117,6 @@ namespace BubblePops
                         _secondRayHit = new RaycastHit2D(); // empty the second ray hit
                         _line.positionCount = 2;
 
-                        //if (_firstRayHit.transform.TryGetComponent(out EmptySlot emptySlot))
-                        //    _player.ThrowBehaviour.UpdateEmptySlot(emptySlot);
-
                         if (_emptySlotRayHit && _emptySlotRayHit.transform.TryGetComponent(out EmptySlot emptySlot))
                         {
                             ReadyToShoot = true;
@@ -132,12 +133,14 @@ namespace BubblePops
             }
             if (Input.GetMouseButtonUp(0))
             {
-                if (ReadyToShoot)
+                if (ReadyToShoot && _mouseIsInPosition)
                 {
-                    if (CheckHitLayer(_firstRayHit, WALL_LAYER))
+                    if (_firstRayHit && CheckHitLayer(_firstRayHit, WALL_LAYER))
                         _player.ThrowBehaviour.TriggerThrow(_firstRayHit.point);
                     else
                         _player.ThrowBehaviour.TriggerThrow();
+
+                    AudioEvents.OnPlayMove?.Invoke();
                 }
 
                 ResetRaycastHits();
@@ -151,11 +154,19 @@ namespace BubblePops
         private void ResetRaycastHits() => _firstRayHit = _secondRayHit = new RaycastHit2D();
         private void CheckForCalcelInputThreshold()
         {
-            if (Input.mousePosition.y < Screen.height * DISABLE_INPUT_HEIGHT_THRESHOLD_PERC)
+            if (Input.mousePosition.y > Screen.height * DISABLE_INPUT_MAX_HEIGHT_THRESHOLD_PERC || Input.mousePosition.y < Screen.height * DISABLE_INPUT_MIN_HEIGHT_THRESHOLD_PERC)
             {
-                ReadyToShoot = false;
-                return;
+                if (_mouseIsInPosition) 
+                {
+                    _player.ThrowBehaviour.DisableEmptySlot();
+                    ResetRaycastHits();
+                    Debug.Log("reset raycasts");
+                }
+                
+                _mouseIsInPosition = ReadyToShoot = false;
             }
+            else
+                _mouseIsInPosition = true;
         }
         private void ShootFirstRay(Vector3 touchPosition)
         {
@@ -180,13 +191,13 @@ namespace BubblePops
             {
                 direction = _firstRayHit.point - _secondRayHit.point;
                 _emptySlotRayHit = Physics2D.Raycast(_secondRayHit.point, direction, 100, _emptySlotLayer);
-                Debug.DrawRay(_secondRayHit.point, direction, Color.blue);
+                // Debug.DrawRay(_secondRayHit.point, direction, Color.blue);
             }
             else
             {
                 direction = (Vector2)transform.position - _firstRayHit.point;
                 _emptySlotRayHit = Physics2D.Raycast(_firstRayHit.point, direction, 100, _emptySlotLayer);
-                Debug.DrawRay(_firstRayHit.point, direction, Color.red);
+                // Debug.DrawRay(_firstRayHit.point, direction, Color.red);
             }
         }
         private bool CheckHitLayer(RaycastHit2D hit, string layerName)
