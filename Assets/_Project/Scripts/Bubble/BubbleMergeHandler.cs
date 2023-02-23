@@ -63,10 +63,10 @@ namespace BubblePops
                     .OnComplete(() => {
                         _bubble.SetRowAndColumn(topMostBubble);
                         _bubble.OnMergeHappened?.Invoke(mergeCount);
-                        _bubble.StoppedMerging();
                         DeleteMergeSequence();
 
                         Utils.DoActionAfterDelay(_bubble, 0.1f, () => {
+                            _bubble.StoppedMerging();
                             BubbleEvents.OnPositionChanged?.Invoke(_bubble);
                             BubbleEvents.OnCheckSurroundings?.Invoke();
                             _bubble.SurroundingHandler.TryMerging(_bubble);

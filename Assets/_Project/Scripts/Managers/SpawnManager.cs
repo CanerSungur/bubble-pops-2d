@@ -17,7 +17,7 @@ namespace BubblePops
         internal const int COLUMN_NUMBER = 4;
         private const float ROW_OFFSET = 0.73f;
         public const float COLUMN_OFFSET = -0.63f;
-        private const float DOUBLE_ROW_OFFSET = -0.3639999f;
+        private const float DOUBLE_ROW_OFFSET = -0.35f;
         private const float THROWABLE_OFFSET = -0.75f;
         #endregion
 

@@ -40,12 +40,6 @@ namespace BubblePops
             UiEvents.OnActivateLevelUpCanvas -= EnableCanvas;
         }
 
-        private void Update() 
-        {
-            if (Input.GetKeyDown(KeyCode.L))
-                UiEvents.OnActivateLevelUpCanvas?.Invoke();    
-        }
-
         #region EVENT HANDLER FUNCTIONS
         private void CloseCanvas()
         {

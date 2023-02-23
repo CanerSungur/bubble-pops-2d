@@ -10,7 +10,7 @@ namespace BubblePops
         [SerializeField] private Transform _bubbleContainerTransform;
         [SerializeField] private int _oneRowSpawnTriggerCount = 25;
         [SerializeField] private int _twoRowSpawnTriggerCount = 12;
-        private int _threeRowSpawnTriggerCount = 6;
+        private int _threeRowSpawnTriggerCount;
         private Enums.ColumnLeanSide _topColumnLeanSide;
         private bool _firstThrow, _upwardsMovementRequested, _downwardMovementRequested;
 
@@ -28,6 +28,7 @@ namespace BubblePops
         {  
             _firstThrow = true;
             _upwardsMovementRequested = _downwardMovementRequested = false;
+            _threeRowSpawnTriggerCount = 6; 
             _topColumnLeanSide = Enums.ColumnLeanSide.Right;
 
             MapEvents.OnCheckMapMovement += CheckMapMovement;

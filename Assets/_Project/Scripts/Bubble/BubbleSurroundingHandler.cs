@@ -18,6 +18,7 @@ namespace BubblePops
         private List<Bubble> _mergeableBubbles = new();
         private Dictionary<Enums.BubbleDirection, Bubble> _affiliatedBubbles = new();
         private Dictionary<Enums.BubbleDirection, Bubble> _dependantBubbles = new();
+        private Dictionary<Enums.BubbleDirection, Bubble> _sideBubbles = new();
         private readonly Dictionary<Enums.BubbleDirection, Vector2> _directions = new();
         private List<Enums.BubbleDirection> _emptyDirections = new();
         private Vector2 _directionRight, _directionRightTop, _directionRightBottom, _directionLeft, _directionLeftTop, _directionLeftBottom;
@@ -28,6 +29,7 @@ namespace BubblePops
         public List<Bubble> MergeableBubbles => _mergeableBubbles;
         public Dictionary<Enums.BubbleDirection, Bubble> AffiliatedBubbles => _affiliatedBubbles;
         public Dictionary<Enums.BubbleDirection, Bubble> DependantBubbles => _dependantBubbles;
+        public Dictionary<Enums.BubbleDirection, Bubble> SideBubbles => _sideBubbles;
         public Dictionary<Enums.BubbleDirection, Vector2> Directions => _directions;
         #endregion
 
@@ -125,6 +127,8 @@ namespace BubblePops
                     RemoveBubbleFromDictionary(_affiliatedBubbles, directionKey);
                 if (directionKey is Enums.BubbleDirection.LeftBottom or Enums.BubbleDirection.RightBottom)
                     RemoveBubbleFromDictionary(_dependantBubbles, directionKey);
+                if (directionKey is Enums.BubbleDirection.Left or Enums.BubbleDirection.Right)
+                    RemoveBubbleFromDictionary(_sideBubbles, directionKey);
             }
             else if (hit.transform.TryGetComponent(out Bubble bubble))
             {
@@ -136,6 +140,8 @@ namespace BubblePops
                     AddBubbleToDictionary(_affiliatedBubbles, directionKey, bubble);
                 if (directionKey is Enums.BubbleDirection.LeftBottom or Enums.BubbleDirection.RightBottom)
                     AddBubbleToDictionary(_dependantBubbles, directionKey, bubble);
+                if (directionKey is Enums.BubbleDirection.Left or Enums.BubbleDirection.Right)
+                    AddBubbleToDictionary(_sideBubbles, directionKey, bubble);
             }
             else
             {
@@ -143,6 +149,8 @@ namespace BubblePops
                     RemoveBubbleFromDictionary(_affiliatedBubbles, directionKey);
                 if (directionKey is Enums.BubbleDirection.LeftBottom or Enums.BubbleDirection.RightBottom)
                     RemoveBubbleFromDictionary(_dependantBubbles, directionKey);
+                if (directionKey is Enums.BubbleDirection.Left or Enums.BubbleDirection.Right)
+                    RemoveBubbleFromDictionary(_sideBubbles, directionKey);    
             }
         }
         #endregion
@@ -229,35 +237,53 @@ namespace BubblePops
             CheckForPossibleMergeableBubbles(_mergeableBubbles);
             BubbleEvents.OnStartMerge?.Invoke(_bubble);
         }
+        // this function also checks 5 layer of bubbles if they are connected to ceiling or not
+        //  but this needs to be recursive to be more generic
         private bool IsAttachedToABubble()
         {
-            foreach (Bubble bubble in _surroundingBubbles)
+            if (_sideBubbles.Count != 0)
             {
-                if (!bubble.IsDropped && !_affiliatedBubbles.ContainsValue(bubble) && !_dependantBubbles.ContainsValue(bubble))
+                for (int i = 0; i < _sideBubbles.Count; i++)
                 {
-                    foreach (Bubble surroundingBubble in bubble.SurroundingHandler.SurroundingBubbles)
-                        if (surroundingBubble.SurroundingHandler.AffiliatedBubbles.Count == 0)
+                    Bubble secondSideBubble = _sideBubbles.ElementAt(i).Value;
+                    if (secondSideBubble.SurroundingHandler.AffiliatedBubbles.Count != 0)
+                        return true;
+                    else
+                    {
+                        if (secondSideBubble.SurroundingHandler.SideBubbles.Count == 0)
                             return false;
                         else
                         {
-                            for (int i = 0; i < surroundingBubble.SurroundingHandler.AffiliatedBubbles.Count; i++)
-                                if (surroundingBubble.SurroundingHandler.AffiliatedBubbles.ElementAt(i).Value.ColumnNumber >= surroundingBubble.ColumnNumber || surroundingBubble.ColumnNumber == bubble.ColumnNumber)
+                            for (int j = 0; j < secondSideBubble.SurroundingHandler.SideBubbles.Count; j++)
+                            {
+                                Bubble thirdSideBubble = secondSideBubble.SurroundingHandler.SideBubbles.ElementAt(j).Value;
+                                if (thirdSideBubble.SurroundingHandler.AffiliatedBubbles.Count != 0)
                                     return true;
+                                else
+                                {
+                                    if (thirdSideBubble.SurroundingHandler.SideBubbles.Count == 0)
+                                        return false;
+                                    else
+                                    {
+                                        for (int k = 0; k < thirdSideBubble.SurroundingHandler.SideBubbles.Count; k++)
+                                        {
+                                            Bubble forthSideBubble = thirdSideBubble.SurroundingHandler.SideBubbles.ElementAt(k).Value;
+                                            if (forthSideBubble.SurroundingHandler.AffiliatedBubbles.Count != 0)
+                                                return true;
+                                            else
+                                            {
+                                                if (forthSideBubble.SurroundingHandler.SideBubbles.Count == 0)
+                                                    return false;
+                                            }
+                                        }
+                                    }
+                                }  
+                            }   
                         }
+                    }
                 }
             }
             return false;
-
-            // foreach (Bubble bubble in _surroundingBubbles)
-            // {
-            //     if (!bubble.IsDropped && !_affiliatedBubbles.ContainsValue(bubble) && !_dependantBubbles.ContainsValue(bubble))
-            //     {
-            //         foreach (Bubble surroundingBubble in bubble.SurroundingHandler.SurroundingBubbles)
-            //             if (surroundingBubble.SurroundingHandler.AffiliatedBubbles.Count != 0)
-            //                 return true;
-            //     }
-            // }
-            // return false;
         }
         #endregion
 

@@ -61,12 +61,6 @@ namespace BubblePops
             GameEvents.OnGameStateChange -= ChangeGameState;
         }
 
-        private void Update() 
-        {
-            if (Input.GetKeyDown(KeyCode.P))
-                UiEvents.OnActivatePerfectText?.Invoke();
-        }
-
         #region EVENT HANDLER FUNCTIONS
         private void ChangeGameState(Enums.GameState gameState)
         {

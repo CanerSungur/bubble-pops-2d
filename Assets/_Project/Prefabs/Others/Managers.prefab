@@ -1,0 +1,183 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4580656489484546719
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4580656489484546718}
+  - component: {fileID: 4580656489484546715}
+  - component: {fileID: 4580656489484546709}
+  - component: {fileID: 4580656489484546714}
+  - component: {fileID: 4580656489484546710}
+  - component: {fileID: 4580656489484546708}
+  - component: {fileID: 4580656489484546717}
+  - component: {fileID: 4580656489484546716}
+  - component: {fileID: 4580656489484546713}
+  - component: {fileID: 4580656489484546712}
+  - component: {fileID: 4580656489484546711}
+  m_Layer: 0
+  m_Name: Managers
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4580656489484546718
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4580656489484546719}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4580656489484546715
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4580656489484546719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 248ce551743f5473b9d74573cd89b9d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _exponentColors:
+  - {r: 0.90196085, g: 0.53333336, b: 0.6039216, a: 1}
+  - {r: 0.8745099, g: 0.46274513, b: 0.29803923, a: 1}
+  - {r: 0.96470594, g: 0.7686275, b: 0.3137255, a: 1}
+  - {r: 0.8941177, g: 0.5921569, b: 0.3137255, a: 1}
+  - {r: 0.5372549, g: 0.7568628, b: 0.40000004, a: 1}
+  - {r: 0.4431373, g: 0.7803922, b: 0.6901961, a: 1}
+  - {r: 0.5019608, g: 0.7411765, b: 0.9176471, a: 1}
+  - {r: 0.48627454, g: 0.6117647, b: 0.8705883, a: 1}
+  - {r: 0.82745105, g: 0.654902, b: 0.8313726, a: 1}
+  - {r: 0.7939016, g: 0.44255075, b: 0.8018868, a: 1}
+  - {r: 0.5018818, g: 0.16580634, b: 0.509434, a: 1}
+--- !u!114 &4580656489484546709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4580656489484546719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88c58c67bb16344c69d8bb652b145977, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &4580656489484546714
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4580656489484546719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8342b05ad72542e695737ab3f5667af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &4580656489484546710
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4580656489484546719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 115147707cf044bdaad8be0f7bd6ea4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &4580656489484546708
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4580656489484546719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e85c34303a3b34f919e8253e2ffc8190, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &4580656489484546717
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4580656489484546719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54d9edaba23a646a4ad96ec35862f736, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _bubbleContainerTransform: {fileID: 0}
+  _throwableContainerTransform: {fileID: 0}
+--- !u!114 &4580656489484546716
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4580656489484546719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 265bf3230db0f42c3873832a97ed73fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &4580656489484546713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4580656489484546719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2115262e639154bdcaa0eb754663b758, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _bubbleContainerTransform: {fileID: 0}
+  _oneRowSpawnTriggerCount: 16
+  _twoRowSpawnTriggerCount: 9
+--- !u!114 &4580656489484546712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4580656489484546719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef6641ff3c92f41e8879ccf11abfa224, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &4580656489484546711
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4580656489484546719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10ea4ee7b2f574341aa6e480ddb040bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _hud: {fileID: 0}
+  _settings: {fileID: 0}
+  _levelUp: {fileID: 0}

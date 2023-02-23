@@ -15,6 +15,7 @@ namespace BubblePops
         private BubbleSurroundingHandler _surroundingHandler;
         private BubbleMergeHandler _mergeHandler;
         private BubbleEffectHandler _effectHandler;
+        private BubbleSequenceHandler _sequenceHandler;
 
         private Rigidbody2D _rigidbody;
         private SpriteRenderer _spriteRenderer;
@@ -40,6 +41,7 @@ namespace BubblePops
 
         public Enums.BubbleStates CurrentState => _currentState;
         public Enums.ColumnLeanSide ColumnLeanSide => _columnLeanSide;
+        public Transform MeshTransform => _meshTransform;
         public int RowNumber => _rowNumber;
         public int ColumnNumber => _columnNumber;
         public int Exponent => _exponent;
@@ -58,8 +60,6 @@ namespace BubblePops
         private const string BUBBLE_LAYER = "Bubble";
         private const string THROWABLE_BUBBLE_LAYER = "ThrowableBubble";
 
-        private const float SET_AS_THROWABLE_SEQUENCE_DURATION = 0.5f;
-        private const float SHAKE_TRANSFORM_DURATION = 0.2f;
         private const int OUTLINE_ENABLE_NUMBER = 1000;
         #endregion
 
@@ -67,11 +67,6 @@ namespace BubblePops
         public Action OnThrowSuccessful, OnSetAsFirstThrowable, OnMergeChainHappened;
         public Action<int> OnMergeHappened;
         public Action<Bubble> OnShakeTransform;
-        #endregion
-
-        #region SEQUENCES
-        private Sequence _shakeTransformSequence, _setAsThrowableSequence, _enableSequence, _disableSequence;
-        private Guid _shakeTransformSequenceID, _setAsThrowableSequenceID, _enableSequenceID, _disableSequenceID;
         #endregion
 
         #region INITIALIZERS
@@ -84,6 +79,7 @@ namespace BubblePops
                 _surroundingHandler = GetComponent<BubbleSurroundingHandler>();
                 _mergeHandler = GetComponent<BubbleMergeHandler>();
                 _effectHandler = GetComponent<BubbleEffectHandler>();
+                _sequenceHandler = GetComponent<BubbleSequenceHandler>();
 
                 _rigidbody = GetComponent<Rigidbody2D>();
                 _spriteRenderer = transform.GetChild(0).GetComponent<SpriteRenderer>();
@@ -94,7 +90,6 @@ namespace BubblePops
 
             _rigidbody.isKinematic = true;
 
-            StartEnableSequence();
             BubbleManager.AddBubbleInSlot(this);
 
             _columnLeanSide = columnLeanSide;
@@ -111,12 +106,15 @@ namespace BubblePops
             _surroundingHandler.Init(this);
             _mergeHandler.Init(this);
             _effectHandler.Init(this);
+            _sequenceHandler.Init(this);
+
+            _sequenceHandler.StartEnableSequence();
 
             BubbleEvents.OnCheckSurroundings += CheckForDistanceToBottom;
 
             OnThrowSuccessful += ThrowSuccessful;
             OnSetAsFirstThrowable += SetAsFirstThrowable;
-            OnShakeTransform += StartShakeTransform;
+            OnShakeTransform += _sequenceHandler.StartShakeTransform;
             OnMergeHappened += MergeHappened;
             OnMergeChainHappened += () => {
                 _mergeChainCount++;
@@ -131,6 +129,7 @@ namespace BubblePops
                 _surroundingHandler = GetComponent<BubbleSurroundingHandler>();
                 _mergeHandler = GetComponent<BubbleMergeHandler>();
                 _effectHandler = GetComponent<BubbleEffectHandler>();
+                _sequenceHandler = GetComponent<BubbleSequenceHandler>();
 
                 _rigidbody = GetComponent<Rigidbody2D>();
                 _spriteRenderer = transform.GetChild(0).GetComponent<SpriteRenderer>();
@@ -142,7 +141,6 @@ namespace BubblePops
             _rigidbody.isKinematic = true;
 
             _currentState = isItFirstThrowable == true ? Enums.BubbleStates.ThrownFirst : Enums.BubbleStates.ThrownSecond;
-            StartEnableSequence();
 
             _isMerging = _isPopped = _isDropped = _isTooClose = false;
 
@@ -154,12 +152,15 @@ namespace BubblePops
             _surroundingHandler.Init(this);
             _mergeHandler.Init(this);
             _effectHandler.Init(this);
+            _sequenceHandler.Init(this);
+
+            _sequenceHandler.StartEnableSequence();
 
             BubbleEvents.OnCheckSurroundings += CheckForDistanceToBottom;
 
             OnThrowSuccessful += ThrowSuccessful;
             OnSetAsFirstThrowable += SetAsFirstThrowable;
-            OnShakeTransform += StartShakeTransform;
+            OnShakeTransform += _sequenceHandler.StartShakeTransform;
             OnMergeHappened += MergeHappened;
             OnMergeChainHappened += () => {
                 _mergeChainCount++;
@@ -179,7 +180,7 @@ namespace BubblePops
 
             OnThrowSuccessful -= ThrowSuccessful;
             OnSetAsFirstThrowable -= SetAsFirstThrowable;
-            OnShakeTransform -= StartShakeTransform;
+            OnShakeTransform -= _sequenceHandler.StartShakeTransform;
             OnMergeHappened -= MergeHappened;
             OnMergeChainHappened -= () => {
                 _mergeChainCount++;
@@ -211,7 +212,7 @@ namespace BubblePops
             if (isItSourceBubble)
                 gameObject.SetActive(false);
             else
-                StartDisableSequence();
+                _sequenceHandler.StartDisableSequence();
 
             if (BubbleManager.ScreenIsCleared())
                 UiEvents.OnActivatePerfectText?.Invoke();
@@ -259,7 +260,7 @@ namespace BubblePops
             _currentState = Enums.BubbleStates.ThrownFirst;
             BubbleManager.SetFirstThrowable(this);
             SpawnEvents.OnSpawnSecondThrowable?.Invoke();
-            StartSetAsThrowableSequence();
+            _sequenceHandler.StartSetAsThrowableSequence();
         }
         private void MergeHappened(int mergeCount)
         {
@@ -321,131 +322,6 @@ namespace BubblePops
         }
 
         private void UpdateText() => _numberText.text = _number > 1000 ? (_number / 1000) + "K" : _number.ToString();
-        #endregion
-
-        #region DOTWEEN FUNCTIONS
-        private void StartShakeTransform(Bubble bubble)
-        {
-            Enums.BubbleDirection moveDirection;
-            if (bubble.ColumnNumber == _columnNumber)
-                moveDirection = bubble.RowNumber <= _rowNumber ? Enums.BubbleDirection.Right : Enums.BubbleDirection.Left;
-            else if (bubble.ColumnNumber > _columnNumber)
-            {
-                moveDirection = bubble.RowNumber <= _rowNumber ? Enums.BubbleDirection.RightTop : Enums.BubbleDirection.LeftTop;
-                moveDirection = _columnLeanSide == Enums.ColumnLeanSide.Left && bubble.RowNumber == _rowNumber ? Enums.BubbleDirection.LeftTop : Enums.BubbleDirection.RightTop;
-            }
-            else
-                moveDirection = bubble.RowNumber <= _rowNumber ? Enums.BubbleDirection.RightBottom : Enums.BubbleDirection.LeftBottom;
-
-            CreateShakeTransformSequence(moveDirection);
-            _shakeTransformSequence.Play();
-        }
-        private void CreateShakeTransformSequence(Enums.BubbleDirection direction)
-        {
-            if (_shakeTransformSequence == null)
-            {
-                _shakeTransformSequence = DOTween.Sequence();
-                _shakeTransformSequenceID = Guid.NewGuid();
-                _shakeTransformSequence.id = _shakeTransformSequenceID;
-
-                Vector3 moveDirection = _surroundingHandler.Directions[direction] * 0.09f;
-                _shakeTransformSequence.Append(_meshTransform.DOLocalMove(moveDirection, SHAKE_TRANSFORM_DURATION * 0.35f))
-                    .Append(_meshTransform.DOLocalMove(Vector2.zero, SHAKE_TRANSFORM_DURATION))
-                    .OnComplete(() =>
-                    {
-
-                        DeleteShakeTransformSequence();
-                    });
-            }
-        }
-        private void DeleteShakeTransformSequence()
-        {
-            DOTween.Kill(_shakeTransformSequenceID);
-            _shakeTransformSequence = null;
-        }
-        // #########################
-        private void StartSetAsThrowableSequence()
-        {
-            CreateSetAsThrowableSequence();
-            _setAsThrowableSequence.Play();
-        }
-        private void CreateSetAsThrowableSequence()
-        {
-            if (_setAsThrowableSequence == null)
-            {
-                _setAsThrowableSequence = DOTween.Sequence();
-                _setAsThrowableSequenceID = Guid.NewGuid();
-                _setAsThrowableSequence.id = _setAsThrowableSequenceID;
-
-                _setAsThrowableSequence.Append(transform.DOLocalMove(Vector2.zero, SET_AS_THROWABLE_SEQUENCE_DURATION * 0.5f))
-                    .Join(_meshTransform.DOScale(Vector2.one * 0.14f, SET_AS_THROWABLE_SEQUENCE_DURATION * 0.5f).SetEase(Ease.OutElastic))
-                    .Append(transform.DOShakePosition(SET_AS_THROWABLE_SEQUENCE_DURATION, new Vector2(0.07f, 0f), 10, 0))
-                    .OnComplete(() => {
-                        //BubbleManager.SetFirstThrowable(this);
-                        _meshTransform.localScale = Vector2.one * 0.14f;
-                        GameEvents.OnGameStateChange?.Invoke(Enums.GameState.Ready);
-                        BubbleEvents.OnCheckSurroundings?.Invoke();
-                        DeleteSetAsThrowableSequence();
-                    });
-            }
-        }
-        private void DeleteSetAsThrowableSequence()
-        {
-            DOTween.Kill(_setAsThrowableSequenceID);
-            _setAsThrowableSequence = null;
-        }
-        // #########################
-        private void StartEnableSequence()
-        {
-            CreateEnableSequence();
-            _enableSequence.Play();
-        }
-        private void CreateEnableSequence()
-        {
-            if (_enableSequence == null)
-            {
-                _enableSequence = DOTween.Sequence();
-                _enableSequenceID = Guid.NewGuid();
-                _enableSequence.id = _enableSequenceID;
-
-                _meshTransform.localScale = Vector2.zero;
-                Vector2 targetScale = _currentState == Enums.BubbleStates.ThrownSecond ? Vector2.one * 0.1f : Vector2.one * 0.14f;
-
-                _enableSequence.Append(_meshTransform.DOScale(targetScale, 0.5f).SetEase(Ease.OutBounce))
-                    .OnComplete(DeleteEnableSequence);
-            }
-        }
-        private void DeleteEnableSequence()
-        {
-            DOTween.Kill(_enableSequenceID);
-            _enableSequence = null;
-        }
-        // #########################
-        private void StartDisableSequence()
-        {
-            CreateDisableSequence();
-            _disableSequence.Play();
-        }
-        private void CreateDisableSequence()
-        {
-            if (_disableSequence == null)
-            {
-                _disableSequence = DOTween.Sequence();
-                _disableSequenceID = Guid.NewGuid();
-                _disableSequence.id = _disableSequenceID;
-
-                _disableSequence.Append(_meshTransform.DOScale(Vector2.zero, 0.5f).SetEase(Ease.OutBounce))
-                    .OnComplete(() => {
-                        DeleteDisableSequence();
-                        gameObject.SetActive(false);
-                    });
-            }
-        }
-        private void DeleteDisableSequence()
-        {
-            DOTween.Kill(_disableSequenceID);
-            _disableSequence = null;
-        }
         #endregion
 
         private void OnCollisionEnter2D(Collision2D collision)

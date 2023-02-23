@@ -11,7 +11,7 @@ namespace BubblePops
         private float _shakeFinishTime;
         private Vector3 _originalPos;
 
-        void OnEnable()
+        private void OnEnable()
         {
             _startShaking = false;
             _originalPos = transform.localPosition;
@@ -30,7 +30,7 @@ namespace BubblePops
             };
         }
 
-        void Update()
+        private void Update()
         {
             if (_startShaking)
             {

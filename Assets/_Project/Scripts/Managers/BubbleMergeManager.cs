@@ -17,14 +17,6 @@ namespace BubblePops
             BubbleEvents.OnCheckSurroundings -= TriggerAllBubblesCheckSurroundings;
         }
 
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                TriggerAllBubblesCheckSurroundings();
-            }
-        }
-
         private void StartMerge(Bubble mainBubble)
         {
             mainBubble.StartedMerging();
@@ -36,9 +28,9 @@ namespace BubblePops
 
             foreach (Bubble bubble in BubbleManager.BubblesToMerge)
             {
+                bubble.StartedMerging();
                 bubble.transform.SetParent(mainBubble.transform);
                 bubble.MergeHandler.StartMoveForOtherBubblesSequence();
-                bubble.StartedMerging();
             }
 
             TriggerAllBubblesCheckSurroundings();
