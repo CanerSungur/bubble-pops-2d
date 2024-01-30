@@ -24,9 +24,9 @@ Game is score based. There is no win or lose condition. If board comes too close
 - **Bubble Pop**\
   _If a bubble becomes number 2024, it pops. It also make all surrounding bubbles pop._
 - **Bubble Spawning**\
-  _If bubble count on the boards is decreased, new line of bubbles will spawn and board will come down.
+  _If bubble count on the boards is decreased, new line of bubbles will spawn and board will come down._
 - **Board Going Up**\
-  _There is no lose condition. So, if board comes too close to the bottom, it goes up to relieve the Player.__
+  _There is no lose condition. So, if board comes too close to the bottom, it goes up to relieve the Player._
 - **Score**\
   _There is a multiplier for merging bubble count. It effects score. All bubble popping action gives Player score. It's shown on the top of the screen._
 
